@@ -1,0 +1,26 @@
+Budget Report
+==============================
+Category: Food
+Budget: 200
+Expenses: 15
+Remaining: 185
+------------------------------
+Category: Transportation
+Budget: 400
+Expenses: 15
+Remaining: 385
+------------------------------
+Category: Entertainment
+Budget: 350
+Expenses: 35
+Remaining: 315
+------------------------------
+Category: Utilities
+Budget: 500
+Expenses: 25
+Remaining: 475
+------------------------------
+Overall Summary
+Total Budget: 500
+Total Spent: 25
+Remaining Budget: 475

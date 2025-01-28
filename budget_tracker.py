@@ -1,6 +1,9 @@
 import csv
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import pandas as pd
+from pathlib import Path
 
 budget = dict(Food=dict(budget=200, expenses=[15]), Transportation=dict(budget=400, expenses=[15]),
               Entertainment=dict(budget=350, expenses=[15, 20]), Utilities=dict(budget=500, expenses=[25]))
@@ -121,6 +124,39 @@ def data_analysis(data):
     except Exception as e:
         print(f"Unexpected error: {e}")
 
+def generate_report(data, filename="budget_report.txt"):
+    try:
+        total_budget = 0
+        total_spent = 0
+        remaining_budget = 0
 
-#save_to_csv(budget)
-print(data_analysis('budget.csv'))
+        report_line = ["Budget Report\n", "=" * 30 + "\n"]
+        for category, details in budget.items():
+            category_budget = details["budget"]
+            category_expenses = sum(details["expenses"])
+            category_remaining = category_budget - category_expenses
+
+            total_budget += category_budget
+            total_spent += category_expenses
+            remaining_budget += category_remaining
+
+            report_line.append(f"Category: {category}\n"
+                               f"Budget: {category_budget}\n"
+                               f"Expenses: {category_expenses}\n"
+                               f"Remaining: {category_remaining}\n"
+                               f"{'-' * 30}\n")
+        report_line.append("Overall Summary\n")
+        report_line.append(f"Total Budget: {category_budget}\n")
+        report_line.append(f"Total Spent: {category_expenses}\n")
+        report_line.append(f"Remaining Budget: {category_remaining}\n")
+
+        report_path = Path(filename)
+        with report_path.open("w") as file:
+            file.writelines(report_line)
+
+        print(f"Report successfully generated {file}")
+
+    except Exception as e:
+        print(f"Unexpected error occurred while generating the report: {e}")
+
+
