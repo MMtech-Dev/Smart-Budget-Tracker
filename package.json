@@ -1,0 +1,23 @@
+{
+  "name": "smart-budget-tracker",
+  "version": "1.0.0",
+  "description": "The **Smart Budget Tracker** is a Python-based command-line application that allows users to manage their budgets efficiently. This project showcases skills in Python programming, data visualization, file handling, and report generation.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IMANA47/Smart-Budget-Tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IMANA47/Smart-Budget-Tracker/issues"
+  },
+  "homepage": "https://github.com/IMANA47/Smart-Budget-Tracker#readme",
+  "dependencies": {
+    "bootstrap": "^5.3.3"
+  }
+}
