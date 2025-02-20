@@ -1,5 +1,5 @@
 Category,Budget,Expenses
-Food,200,15
+Food,200,"15,20"
 Transportation,400,15
 Entertainment,350,"15,20"
 Utilities,500,25

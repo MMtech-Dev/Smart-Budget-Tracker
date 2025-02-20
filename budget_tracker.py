@@ -1,162 +1,116 @@
 import csv
-import matplotlib
-matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import pandas as pd
 from pathlib import Path
+import os
 
-budget = dict(Food=dict(budget=200, expenses=[15]), Transportation=dict(budget=400, expenses=[15]),
-              Entertainment=dict(budget=350, expenses=[15, 20]), Utilities=dict(budget=500, expenses=[25]))
+# ✅ Budget Dictionary
+budget = {
+    "Food": {"budget": 200, "expenses": [15]},
+    "Transportation": {"budget": 400, "expenses": [15]},
+    "Entertainment": {"budget": 350, "expenses": [15, 20]},
+    "Utilities": {"budget": 500, "expenses": [25]}
+}
 
-def budget_view(budget):
-    print("\nCurrent Budget and Expenses:\n")
-    print(f"{'Category':<15}{'Budget':<10}{'Expenses':<20}{'Total Spent':<15}")
-    print("-" * 60)
+# ✅ View Budget
+def budget_view():
+    return budget  # Returning dictionary for API response
 
-    total_budget = 0
-    total_spent = 0
-
-    for category, details in budget.items():
-        total_budget += details["budget"]
-        total_spent += sum(details["expenses"])
-        print(f"{category:<15}{details['budget']:<10}{', '.join(map(str, details['expenses'])):<20}{sum(details['expenses']):<15}")
-
-    print("-" * 60)
-    print(f"{'Total':<15}{total_budget:<10}{'':<20}{total_spent:<15}\n")
-
-
-def add_expense(cat, expense):
+# ✅ Add Expense
+def add_expense(category, expense):
     try:
-        if cat not in budget:
-            choice = input(f"{cat} not in budget. Do you want to add {cat}? (y/n): ").lower()
-            if choice == "y":
-                add_budget = int(input("Enter budget: "))
-                budget[cat] = {"budget": add_budget, "expenses": [expense]}
-                print(f"Added new category: {cat} | Budget: {add_budget}, Expense: {expense}")
-            else:
-                print(f"{cat} was not added.")
-                return
-        else:
-            amend_choice = input(f"Do you want to amend the budget for {cat}? (y/n): ").lower()
-            if amend_choice == "y":
-                new_budget = int(input("Enter new budget: "))
-                budget[cat]["budget"] = new_budget
-                print(f"Updated budget for {cat}: {new_budget}")
+        if category not in budget:
+            return {"error": f"{category} not in budget. Add a budget first."}
 
-            # Add expense
-            budget[cat]["expenses"].append(expense)
-            print(f"Added expense to {cat}: {expense}")
+        budget[category]["expenses"].append(expense)
+        return {"message": f"Expense {expense} added to {category}", "budget": budget}
 
     except ValueError:
-        print("Invalid input. Please try again.")
+        return {"error": "Invalid input. Expense must be a number."}
 
-
-def save_to_csv(data, filename='budget.csv'):
+# ✅ Save Budget to CSV
+def save_to_csv(data, filename="budget.csv"):
     try:
         with open(filename, "w", newline="") as data_base:
             if not data:
-                print(f"⚠️ No data to save.")
-                return
+                return {"error": "No data to save."}
 
             writer = csv.writer(data_base)
-            writer.writerow(['Category', 'Budget', 'Expenses'])
-            for k, v in data.items():
-                writer.writerow([k, v["budget"], ",".join(map(str, v["expenses"]))])
-            print(f"✅ Successfully saved to {filename}")
-    except Exception as e:
-        print(f"⚠️ An error occurred while saving to {filename}: {e}")
+            writer.writerow(["Category", "Budget", "Expenses"])
+            for category, details in data.items():
+                writer.writerow([category, details["budget"], ",".join(map(str, details["expenses"]))])
 
-def data_analysis(data):
+        return {"message": f"✅ Successfully saved to {filename}"}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+# ✅ Data Analysis (Generate Chart)
+def data_analysis(data, chart_choice=1):
     try:
-        # Load the file
+        if not os.path.exists(data):
+            return {"error": f"CSV file not found: {data}"}
+
         df = pd.read_csv(data)
 
-        # Convert 'Expenses' to 'Total Expenses'
+        # Convert 'Expenses' column to 'Total Spent'
         df["Total Spent"] = df["Expenses"].apply(lambda x: sum(map(int, x.split(","))) if isinstance(x, str) and x else 0)
 
-        # Drop the original 'Expenses' column
         df.drop(["Expenses"], axis=1, inplace=True)
-
-        # Set index to 'Category'
         df.set_index("Category", inplace=True)
 
-        # Plot Budget vs. Total Expenses
-        chart_list = {1:"bar", 2:"pie"}
-        print("\n Available Charts:\n")
-        for k, v in chart_list.items():
-            print(f"{k}. {v.capitalize()} Chart")
+        img_path = os.path.join("static", "analysis_plot.png")
 
-        while True:
-            try:
-                chart_choice = int(input(f"Choose a chart from the list (1-3): ").lower())
-                if chart_choice == 1:
-                    df.plot(kind='bar', figsize=(10, 6), title="Budget vs Total Expenses", rot=0)
-                    plt.xlabel("Category")
-                    plt.ylabel("Amount £")
-                    plt.tight_layout()
-                    plt.grid(axis="y", linestyle="--", alpha=0.7)
-                    plt.legend(["Budget", "Total Spent"])
-                    plt.show()
-                    break
+        # Generate Chart
+        if chart_choice == 1:
+            df.plot(kind='bar', figsize=(10, 6), title="Budget vs Total Expenses", rot=0)
+        elif chart_choice == 2:
+            df.plot.pie(y="Total Spent", labels=df.index, autopct="%1.1f%%", shadow=True, startangle=90, figsize=(8, 8),
+                        title="Total Spent Distribution")
+            plt.ylabel("")
 
-                elif chart_choice == 2:
-                    df.plot.pie(y="Total Spent",
-                                labels=df.index,
-                                autopct="%1.1f%%",
-                                shadow=True,
-                                startangle=90,
-                                figsize=(8, 8),
-                                title="Total Spent Distribution")
-                    plt.ylabel("")
-                    plt.show()
-                    break
-                else:
-                    print("Invalid input. Please enter 1 or 2.")
+        plt.savefig(img_path)
+        plt.close()
 
-            except ValueError:
-                print("Invalid input. Please try again.")
-                continue
+        if os.path.exists(img_path):
+            return img_path  # Return image path for API
 
+        return {"error": "Image not found after saving!"}
 
-
-    except FileNotFoundError:
-        print(f"Error: File {data} not found.")
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        return {"error": str(e)}
 
-def generate_report(data, filename="budget_report.txt"):
+# ✅ Generate Budget Report
+def generate_report(data, filename="static/budget_report.txt"):
     try:
-        total_budget = 0
-        total_spent = 0
-        remaining_budget = 0
+        total_budget = sum(details["budget"] for details in budget.values())
+        total_spent = sum(sum(details["expenses"]) for details in budget.values())
+        remaining_budget = total_budget - total_spent
 
-        report_line = ["Budget Report\n", "=" * 30 + "\n"]
+        report_lines = [
+            "=== Budget Report ===\n",
+            f"Total Budget: £{total_budget}\n",
+            f"Total Spent: £{total_spent}\n",
+            f"Remaining Budget: £{remaining_budget}\n",
+            "=" * 30 + "\n"
+        ]
+
         for category, details in budget.items():
             category_budget = details["budget"]
             category_expenses = sum(details["expenses"])
             category_remaining = category_budget - category_expenses
 
-            total_budget += category_budget
-            total_spent += category_expenses
-            remaining_budget += category_remaining
+            report_lines.append(f"Category: {category}\n"
+                                f"Budget: £{category_budget}\n"
+                                f"Expenses: £{category_expenses}\n"
+                                f"Remaining: £{category_remaining}\n"
+                                f"{'-' * 30}\n")
 
-            report_line.append(f"Category: {category}\n"
-                               f"Budget: {category_budget}\n"
-                               f"Expenses: {category_expenses}\n"
-                               f"Remaining: {category_remaining}\n"
-                               f"{'-' * 30}\n")
-        report_line.append("Overall Summary\n")
-        report_line.append(f"Total Budget: {category_budget}\n")
-        report_line.append(f"Total Spent: {category_expenses}\n")
-        report_line.append(f"Remaining Budget: {category_remaining}\n")
+        # Save report
+        with open(filename, "w") as file:
+            file.writelines(report_lines)
 
-        report_path = Path(filename)
-        with report_path.open("w") as file:
-            file.writelines(report_line)
-
-        print(f"Report successfully generated {file}")
+        return filename  # Return report file path for API
 
     except Exception as e:
-        print(f"Unexpected error occurred while generating the report: {e}")
-
-
+        return {"error": str(e)}

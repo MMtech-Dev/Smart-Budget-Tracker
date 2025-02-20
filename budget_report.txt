@@ -2,8 +2,8 @@ Budget Report
 ==============================
 Category: Food
 Budget: 200
-Expenses: 15
-Remaining: 185
+Expenses: 35
+Remaining: 165
 ------------------------------
 Category: Transportation
 Budget: 400
